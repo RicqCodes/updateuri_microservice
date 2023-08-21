@@ -84,7 +84,7 @@ export const processEvents = async () => {
       }
 
       // Start listening for new events every 5 seconds
-      setTimeout(listenWithRetry, 8000);
+      setTimeout(listenWithRetry, 15000);
       // // Start listening for new events
       // contract.on("DomainRegistered", async (owner, tokenId, domainName) => {
       //   console.log(
