@@ -50,6 +50,11 @@ const domainSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  tokenId: {
+    type: String,
+    unique: true,
+    required: true,
+  },
 });
 
 domainSchema.index({ owner: 1, chain: 1 });

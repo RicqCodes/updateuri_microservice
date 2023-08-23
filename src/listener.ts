@@ -1,4 +1,4 @@
-import { ethers, JsonRpcProvider, EventLog } from "ethers";
+import { ethers, JsonRpcProvider, EventLog, id, ZeroAddress } from "ethers";
 import "dotenv/config";
 
 import { generateMetadata, generateSVG } from "./utils";
@@ -36,17 +36,15 @@ export const processEvents = async () => {
     console.log("end block", endBlock);
 
     try {
-      const logs = await contract.queryFilter(
+      const domainRegLogs = await contract.queryFilter(
         contract.filters?.DomainRegistered(),
         startBlock, // Start from the next block
         endBlock // End at the current block
       );
 
-      for (const log of logs) {
+      for (const log of domainRegLogs) {
         const eventLog = log as EventLog;
         const [owner, id, domainName] = eventLog.args;
-        console.log(owner, id, domainName);
-
         const existingMetadata = await Metadata.findOne({
           tokenId: id.toString(),
         });
@@ -62,9 +60,12 @@ export const processEvents = async () => {
 
           // Save metadata to the database
           const metadata = await Metadata.create(json);
-          const domain = await Domain.create({ owner, domainName, chainId });
-          console.log(metadata);
-          console.log(domain);
+          const domain = await Domain.create({
+            owner,
+            domainName,
+            chainId,
+            tokenId,
+          });
         } else {
           console.log(
             `Token ID ${id} already exists in the database. Skipping.`
@@ -72,51 +73,42 @@ export const processEvents = async () => {
         }
       }
 
+      const transferLogs = await contract.queryFilter(
+        contract.filters?.Transfer(),
+        startBlock,
+        endBlock
+      );
+
+      for (const log of transferLogs) {
+        const eventLog = log as EventLog;
+        const [from, to, tokenId] = eventLog.args;
+
+        if (from === ZeroAddress) continue;
+
+        const currentOwner = await Domain.findOne({
+          tokenId: tokenId.toString(),
+        });
+
+        if (!currentOwner) continue;
+
+        currentOwner.owner = to;
+        await currentOwner.save();
+      }
+
       // Update last processed block in the collection
       if (lastProcessed) {
-        lastProcessed.lastProcessedBlock = currentBlock;
+        lastProcessed.lastProcessedBlock = endBlock;
         await lastProcessed.save();
       } else {
         await LastProcessedEvent.create({
           eventName: "DomainRegistered",
-          lastProcessedBlock: currentBlock,
+          lastProcessedBlock: endBlock,
         });
       }
 
       // Start listening for new events every 5 seconds
-      setTimeout(listenWithRetry, 15000);
-      // // Start listening for new events
-      // contract.on("DomainRegistered", async (owner, tokenId, domainName) => {
-      //   console.log(
-      //     `Received Register event for tokenId ${tokenId}, name ${domainName}, domainName ${domainName}`
-      //   );
-
-      //   const existingMetadata = await Metadata.findOne({
-      //     tokenId: tokenId.toString(),
-      //   });
-
-      //   console.log(existingMetadata);
-
-      //   if (!existingMetadata) {
-      //     const svg = generateSVG(domainName);
-      //     const id = Number(tokenId);
-      //     const json = generateMetadata(
-      //       id.toString(),
-      //       domainName,
-      //       svg as string
-      //     );
-
-      //     // Save metadata to the database
-      //     const metadata = await Metadata.create(json);
-      //     const domain = await Domain.create({ owner, domainName, chainId });
-      //     console.log(metadata);
-      //     console.log(domain);
-      //   } else {
-      //     console.log(
-      //       `Token ID ${tokenId} already exists in the database. Skipping.`
-      //     );
-      //   }
-      // });
+      // setTimeout(listenWithRetry, 15000);
+      setTimeout(listenWithRetry, 5000);
     } catch (error) {
       console.log(error);
       console.log("Retrying after delay...");
