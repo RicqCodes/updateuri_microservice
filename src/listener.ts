@@ -106,8 +106,7 @@ export const processEvents = async () => {
         });
       }
 
-      // Start listening for new events every 5 seconds
-      // setTimeout(listenWithRetry, 15000);
+      // Start listening for new events every 15 seconds
       setTimeout(listenWithRetry, 15000);
     } catch (error) {
       console.log(error);
