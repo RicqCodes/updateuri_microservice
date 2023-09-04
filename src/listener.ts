@@ -14,7 +14,7 @@ const provider = new JsonRpcProvider(alchemyRPC);
 
 const contract = new ethers.Contract(contractAddress, contractABI, provider);
 
-const contractCreatedBlock = process.env.START_BLOCK || 8713686;
+const contractCreatedBlock = process.env.START_BLOCK || 3528447;
 export const processEvents = async () => {
   const network = await provider.getNetwork();
   const chainId = network.chainId;
@@ -59,8 +59,8 @@ export const processEvents = async () => {
           );
 
           // Save metadata to the database
-          const metadata = await Metadata.create(json);
-          const domain = await Domain.create({
+          await Metadata.create(json);
+          await Domain.create({
             owner,
             domainName,
             chainId,
@@ -107,7 +107,7 @@ export const processEvents = async () => {
       }
 
       // Start listening for new events every 15 seconds
-      setTimeout(listenWithRetry, 15000);
+      setTimeout(listenWithRetry, 10000);
     } catch (error) {
       console.log(error);
       console.log("Retrying after delay...");
