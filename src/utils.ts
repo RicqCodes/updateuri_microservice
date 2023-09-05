@@ -1768,8 +1768,8 @@ export const generateMetadata = (
   const json = {
     tokenId: id,
     name: domainName,
-    description: "A domain on the test name service",
-    external_url: "https://baseid.domain",
+    description: "Human readable Identity for addresses on base",
+    external_url: "https://baseid.domains",
     image: "data:image/svg+xml;base64," + encodeSVGToBase64(svg),
   };
   return json;
