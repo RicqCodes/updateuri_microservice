@@ -107,7 +107,7 @@ export const processEvents = async () => {
       }
 
       // Start listening for new events every 15 seconds
-      setTimeout(listenWithRetry, 10000);
+      setTimeout(listenWithRetry, 20000);
     } catch (error) {
       console.log(error);
       console.log("Retrying after delay...");
