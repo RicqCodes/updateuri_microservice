@@ -11,6 +11,7 @@ const contractAddress = process.env.CA || "";
 const alchemyRPC = process.env.ALCHEMY_RPC;
 
 const provider = new JsonRpcProvider(alchemyRPC);
+console.log(provider);
 
 const contract = new ethers.Contract(contractAddress, contractABI, provider);
 
@@ -111,7 +112,8 @@ export const processEvents = async () => {
     } catch (error) {
       console.log(error);
       console.log("Retrying after delay...");
-      setTimeout(listenWithRetry, 5000);
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      listenWithRetry();
     }
   };
 
