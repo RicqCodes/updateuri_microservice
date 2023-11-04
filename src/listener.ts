@@ -27,7 +27,7 @@ export const processEvents = async () => {
     });
     // Get current network information
     const startBlock = lastProcessed
-      ? lastProcessed.lastProcessedBlock
+      ? lastProcessed.lastProcessedBlock + 1
       : contractCreatedBlock;
     const currentBlock = await provider.getBlockNumber();
     const endBlock =
